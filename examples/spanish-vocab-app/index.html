@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Vocabulary Learner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            background: white;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .content {
+            padding: 30px 20px;
+            min-height: 400px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Flashcard Styles */
+        .flashcard {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 60px 30px;
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .flashcard:hover {
+            transform: scale(1.02);
+        }
+
+        .flashcard.flipped {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .word-spanish {
+            font-size: 42px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .word-english {
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 15px;
+        }
+
+        .word-example {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .tap-hint {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+        }
+
+        .card-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-correct {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-correct:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-incorrect {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-incorrect:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        /* Reading Practice Styles */
+        .reading-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .sentence-spanish {
+            font-size: 24px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .question {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 15px;
+            color: #667eea;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .option-btn.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Progress Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            margin-top: 30px;
+        }
+
+        .progress-section h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .word-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .word-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .word-info {
+            flex: 1;
+        }
+
+        .word-info strong {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .word-info span {
+            color: #6c757d;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .word-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s;
+        }
+
+        .reset-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .reset-btn:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 600px) {
+            .word-spanish {
+                font-size: 32px;
+            }
+
+            .word-english {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇪🇸 Spanish Vocabulary</h1>
+            <p>Learn Spanish words with flashcards and context</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchView('flashcards')">Flashcards</button>
+            <button class="nav-tab" onclick="switchView('reading')">Reading</button>
+            <button class="nav-tab" onclick="switchView('progress')">Progress</button>
+        </div>
+
+        <div class="content">
+            <!-- Flashcards View -->
+            <div id="flashcards-view" class="view active">
+                <div id="flashcard" class="flashcard" onclick="flipCard()">
+                    <div class="word-spanish" id="card-spanish"></div>
+                    <div class="word-english" id="card-english" style="display: none;"></div>
+                    <div class="word-example" id="card-example" style="display: none;"></div>
+                    <div class="tap-hint">Tap to reveal</div>
+                </div>
+                <div class="card-buttons" id="card-buttons" style="display: none;">
+                    <button class="btn btn-incorrect" onclick="rateCard(false)">Need Practice</button>
+                    <button class="btn btn-correct" onclick="rateCard(true)">Got It!</button>
+                </div>
+            </div>
+
+            <!-- Reading Practice View -->
+            <div id="reading-view" class="view">
+                <div class="reading-card">
+                    <div class="sentence-spanish" id="reading-sentence"></div>
+                    <div class="question">What does the highlighted word mean?</div>
+                    <div class="options" id="reading-options"></div>
+                    <div class="feedback" id="reading-feedback"></div>
+                </div>
+                <button class="btn btn-primary" onclick="nextReading()" style="width: 100%;">Next Sentence</button>
+            </div>
+
+            <!-- Progress View -->
+            <div id="progress-view" class="view">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-studied">0</div>
+                        <div class="stat-label">Words Studied</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="mastered">0</div>
+                        <div class="stat-label">Mastered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="correct-rate">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="streak">0</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <h3>Your Vocabulary Progress</h3>
+                    <div class="word-list" id="word-progress-list"></div>
+                </div>
+
+                <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vocabulary Database
+        const vocabulary = [
+            { id: 1, spanish: "hola", english: "hello", example: "Hola, ¿cómo estás?" },
+            { id: 2, spanish: "adiós", english: "goodbye", example: "Adiós, hasta luego." },
+            { id: 3, spanish: "gracias", english: "thank you", example: "Gracias por tu ayuda." },
+            { id: 4, spanish: "por favor", english: "please", example: "Por favor, ayúdame." },
+            { id: 5, spanish: "sí", english: "yes", example: "Sí, estoy de acuerdo." },
+            { id: 6, spanish: "no", english: "no", example: "No, no quiero ir." },
+            { id: 7, spanish: "agua", english: "water", example: "Necesito un vaso de agua." },
+            { id: 8, spanish: "comida", english: "food", example: "La comida está deliciosa." },
+            { id: 9, spanish: "casa", english: "house", example: "Mi casa es grande." },
+            { id: 10, spanish: "libro", english: "book", example: "Estoy leyendo un libro interesante." },
+            { id: 11, spanish: "tiempo", english: "time / weather", example: "No tengo tiempo ahora." },
+            { id: 12, spanish: "día", english: "day", example: "Hoy es un buen día." },
+            { id: 13, spanish: "noche", english: "night", example: "Buenas noches, hasta mañana." },
+            { id: 14, spanish: "amigo", english: "friend", example: "Él es mi mejor amigo." },
+            { id: 15, spanish: "familia", english: "family", example: "Mi familia es muy importante." },
+            { id: 16, spanish: "trabajo", english: "work / job", example: "Voy al trabajo cada día." },
+            { id: 17, spanish: "escuela", english: "school", example: "Los niños van a la escuela." },
+            { id: 18, spanish: "coche", english: "car", example: "Mi coche es rojo." },
+            { id: 19, spanish: "ciudad", english: "city", example: "Vivo en una ciudad grande." },
+            { id: 20, spanish: "país", english: "country", example: "España es un país hermoso." },
+            { id: 21, spanish: "persona", english: "person", example: "Ella es una persona amable." },
+            { id: 22, spanish: "hombre", english: "man", example: "El hombre camina por la calle." },
+            { id: 23, spanish: "mujer", english: "woman", example: "La mujer trabaja en una oficina." },
+            { id: 24, spanish: "niño", english: "child / boy", example: "El niño juega en el parque." },
+            { id: 25, spanish: "grande", english: "big / large", example: "Tengo un problema grande." },
+            { id: 26, spanish: "pequeño", english: "small", example: "Mi perro es pequeño." },
+            { id: 27, spanish: "bueno", english: "good", example: "Es un buen restaurante." },
+            { id: 28, spanish: "malo", english: "bad", example: "Hace mal tiempo hoy." },
+            { id: 29, spanish: "nuevo", english: "new", example: "Tengo un teléfono nuevo." },
+            { id: 30, spanish: "viejo", english: "old", example: "Este edificio es muy viejo." },
+            { id: 31, spanish: "hacer", english: "to do / make", example: "¿Qué vas a hacer hoy?" },
+            { id: 32, spanish: "ir", english: "to go", example: "Voy a ir al mercado." },
+            { id: 33, spanish: "venir", english: "to come", example: "¿Puedes venir a mi casa?" },
+            { id: 34, spanish: "ver", english: "to see / watch", example: "Veo una película esta noche." },
+            { id: 35, spanish: "decir", english: "to say / tell", example: "¿Qué quieres decir?" },
+            { id: 36, spanish: "saber", english: "to know (facts)", example: "Yo sé hablar español." },
+            { id: 37, spanish: "querer", english: "to want", example: "Quiero aprender más español." },
+            { id: 38, spanish: "poder", english: "to be able / can", example: "No puedo hacerlo solo." },
+            { id: 39, spanish: "dar", english: "to give", example: "Dame el libro, por favor." },
+            { id: 40, spanish: "tener", english: "to have", example: "Tengo dos hermanos." },
+            { id: 41, spanish: "ser", english: "to be (permanent)", example: "Soy de México." },
+            { id: 42, spanish: "estar", english: "to be (temporary)", example: "Estoy cansado hoy." },
+            { id: 43, spanish: "comer", english: "to eat", example: "Vamos a comer juntos." },
+            { id: 44, spanish: "beber", english: "to drink", example: "¿Quieres beber algo?" },
+            { id: 45, spanish: "hablar", english: "to speak / talk", example: "Hablo español e inglés." },
+            { id: 46, spanish: "vivir", english: "to live", example: "Vivo en Barcelona." },
+            { id: 47, spanish: "dormir", english: "to sleep", example: "Necesito dormir más." },
+            { id: 48, spanish: "trabajar", english: "to work", example: "Trabajo en una empresa." },
+            { id: 49, spanish: "estudiar", english: "to study", example: "Estudio español cada día." },
+            { id: 50, spanish: "llamar", english: "to call", example: "Voy a llamar a mi madre." },
+            { id: 51, spanish: "conocer", english: "to know (people/places)", example: "Conozco un buen restaurante." },
+            { id: 52, spanish: "encontrar", english: "to find", example: "No puedo encontrar mis llaves." },
+            { id: 53, spanish: "pensar", english: "to think", example: "¿Qué piensas de esta idea?" },
+            { id: 54, spanish: "creer", english: "to believe", example: "Creo que tienes razón." },
+            { id: 55, spanish: "sentir", english: "to feel", example: "Me siento muy feliz hoy." },
+            { id: 56, spanish: "amor", english: "love", example: "El amor es importante." },
+            { id: 57, spanish: "vida", english: "life", example: "La vida es bella." },
+            { id: 58, spanish: "mundo", english: "world", example: "Quiero viajar por el mundo." },
+            { id: 59, spanish: "año", english: "year", example: "Este año voy a España." },
+            { id: 60, spanish: "mes", english: "month", example: "El próximo mes es enero." },
+            { id: 61, spanish: "semana", english: "week", example: "Esta semana estoy ocupado." },
+            { id: 62, spanish: "hora", english: "hour / time", example: "¿Qué hora es?" },
+            { id: 63, spanish: "mañana", english: "tomorrow / morning", example: "Nos vemos mañana." },
+            { id: 64, spanish: "tarde", english: "afternoon / late", example: "Buenas tardes." },
+            { id: 65, spanish: "ahora", english: "now", example: "Tengo que irme ahora." },
+            { id: 66, spanish: "siempre", english: "always", example: "Siempre llego tarde." },
+            { id: 67, spanish: "nunca", english: "never", example: "Nunca he estado en París." },
+            { id: 68, spanish: "mucho", english: "much / a lot", example: "Me gusta mucho el chocolate." },
+            { id: 69, spanish: "poco", english: "little / few", example: "Tengo poco dinero." },
+            { id: 70, spanish: "más", english: "more", example: "Quiero más café." },
+            { id: 71, spanish: "menos", english: "less", example: "Trabajo menos que antes." },
+            { id: 72, spanish: "muy", english: "very", example: "Estoy muy cansado." },
+            { id: 73, spanish: "bien", english: "well / good", example: "Todo está bien." },
+            { id: 74, spanish: "mal", english: "badly / bad", example: "Me siento mal." },
+            { id: 75, spanish: "aquí", english: "here", example: "Ven aquí, por favor." },
+            { id: 76, spanish: "allí", english: "there", example: "El banco está allí." },
+            { id: 77, spanish: "donde", english: "where", example: "¿Dónde vives?" },
+            { id: 78, spanish: "cuando", english: "when", example: "¿Cuándo vienes?" },
+            { id: 79, spanish: "cómo", english: "how", example: "¿Cómo estás?" },
+            { id: 80, spanish: "por qué", english: "why", example: "¿Por qué estudias español?" }
+        ];
+
+        // State
+        let currentCard = null;
+        let isFlipped = false;
+        let currentReading = null;
+        let userProgress = {};
+
+        // Initialize
+        function init() {
+            loadProgress();
+            loadFlashcard();
+            loadReading();
+            updateProgressView();
+        }
+
+        // Local Storage
+        function loadProgress() {
+            const saved = localStorage.getItem('spanishVocabProgress');
+            if (saved) {
+                userProgress = JSON.parse(saved);
+            } else {
+                userProgress = {};
+                vocabulary.forEach(word => {
+                    userProgress[word.id] = {
+                        correct: 0,
+                        incorrect: 0,
+                        lastReviewed: null,
+                        nextReview: Date.now(),
+                        interval: 0
+                    };
+                });
+                saveProgress();
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('spanishVocabProgress', JSON.stringify(userProgress));
+        }
+
+        // View Switching
+        function switchView(view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(`${view}-view`).classList.add('active');
+            event.target.classList.add('active');
+
+            if (view === 'progress') {
+                updateProgressView();
+            }
+        }
+
+        // Flashcard Functions
+        function loadFlashcard() {
+            // Get words due for review using spaced repetition
+            const dueWords = vocabulary.filter(word => {
+                const progress = userProgress[word.id];
+                return progress.nextReview <= Date.now();
+            });
+
+            if (dueWords.length === 0) {
+                // If no words due, pick a random word
+                currentCard = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+            } else {
+                // Pick from due words
+                currentCard = dueWords[Math.floor(Math.random() * dueWords.length)];
+            }
+
+            isFlipped = false;
+            document.getElementById('card-spanish').textContent = currentCard.spanish;
+            document.getElementById('card-english').style.display = 'none';
+            document.getElementById('card-example').style.display = 'none';
+            document.getElementById('card-buttons').style.display = 'none';
+            document.querySelector('.tap-hint').style.display = 'block';
+            document.getElementById('flashcard').classList.remove('flipped');
+        }
+
+        function flipCard() {
+            if (!isFlipped) {
+                isFlipped = true;
+                document.getElementById('card-english').textContent = currentCard.english;
+                document.getElementById('card-example').textContent = currentCard.example;
+                document.getElementById('card-english').style.display = 'block';
+                document.getElementById('card-example').style.display = 'block';
+                document.getElementById('card-buttons').style.display = 'flex';
+                document.querySelector('.tap-hint').style.display = 'none';
+                document.getElementById('flashcard').classList.add('flipped');
+            }
+        }
+
+        function rateCard(correct) {
+            const progress = userProgress[currentCard.id];
+            progress.lastReviewed = Date.now();
+
+            if (correct) {
+                progress.correct++;
+                // Increase interval using modified SM-2 algorithm
+                if (progress.interval === 0) {
+                    progress.interval = 1;
+                } else if (progress.interval === 1) {
+                    progress.interval = 6;
+                } else {
+                    progress.interval = Math.round(progress.interval * 2.5);
+                }
+            } else {
+                progress.incorrect++;
+                // Reset interval
+                progress.interval = 0;
+            }
+
+            // Calculate next review date
+            progress.nextReview = Date.now() + (progress.interval * 24 * 60 * 60 * 1000);
+
+            saveProgress();
+            loadFlashcard();
+        }
+
+        // Reading Practice Functions
+        function loadReading() {
+            // Pick a random word with an example sentence
+            const wordsWithExamples = vocabulary.filter(w => w.example);
+            currentReading = wordsWithExamples[Math.floor(Math.random() * wordsWithExamples.length)];
+
+            // Highlight the word in the sentence
+            const sentence = currentReading.example.replace(
+                new RegExp(currentReading.spanish, 'gi'),
+                `<span class="highlight">${currentReading.spanish}</span>`
+            );
+
+            document.getElementById('reading-sentence').innerHTML = sentence;
+
+            // Generate options (correct answer + 3 random wrong answers)
+            const options = [currentReading.english];
+            const wrongOptions = vocabulary
+                .filter(w => w.id !== currentReading.id)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(w => w.english);
+
+            options.push(...wrongOptions);
+            options.sort(() => 0.5 - Math.random());
+
+            // Display options
+            const optionsContainer = document.getElementById('reading-options');
+            optionsContainer.innerHTML = '';
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => checkReading(option);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Reset feedback
+            document.getElementById('reading-feedback').classList.remove('show', 'correct', 'incorrect');
+        }
+
+        function checkReading(selected) {
+            const correct = selected === currentReading.english;
+            const feedback = document.getElementById('reading-feedback');
+            const buttons = document.querySelectorAll('.option-btn');
+
+            // Disable all buttons
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === currentReading.english) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === selected && !correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Show feedback
+            feedback.classList.add('show', correct ? 'correct' : 'incorrect');
+            feedback.textContent = correct
+                ? `Correct! "${currentReading.spanish}" means "${currentReading.english}".`
+                : `Not quite. "${currentReading.spanish}" means "${currentReading.english}".`;
+
+            // Update progress
+            const progress = userProgress[currentReading.id];
+            if (correct) {
+                progress.correct++;
+            } else {
+                progress.incorrect++;
+            }
+            saveProgress();
+        }
+
+        function nextReading() {
+            loadReading();
+        }
+
+        // Progress View Functions
+        function updateProgressView() {
+            let totalStudied = 0;
+            let mastered = 0;
+            let totalCorrect = 0;
+            let totalAttempts = 0;
+
+            Object.keys(userProgress).forEach(id => {
+                const progress = userProgress[id];
+                const attempts = progress.correct + progress.incorrect;
+                if (attempts > 0) {
+                    totalStudied++;
+                    totalCorrect += progress.correct;
+                    totalAttempts += attempts;
+
+                    // Consider mastered if correct rate > 80% and reviewed at least 5 times
+                    if (attempts >= 5 && (progress.correct / attempts) > 0.8) {
+                        mastered++;
+                    }
+                }
+            });
+
+            const correctRate = totalAttempts > 0
+                ? Math.round((totalCorrect / totalAttempts) * 100)
+                : 0;
+
+            document.getElementById('total-studied').textContent = totalStudied;
+            document.getElementById('mastered').textContent = mastered;
+            document.getElementById('correct-rate').textContent = correctRate + '%';
+
+            // Calculate streak (simplified - just show total days with activity)
+            const streak = totalStudied > 0 ? Math.ceil(totalStudied / 10) : 0;
+            document.getElementById('streak').textContent = streak;
+
+            // Display word progress
+            const wordList = document.getElementById('word-progress-list');
+            wordList.innerHTML = '';
+
+            // Sort words by total attempts (most practiced first)
+            const sortedWords = vocabulary
+                .map(word => ({
+                    ...word,
+                    progress: userProgress[word.id]
+                }))
+                .filter(w => (w.progress.correct + w.progress.incorrect) > 0)
+                .sort((a, b) => {
+                    const aTotal = a.progress.correct + a.progress.incorrect;
+                    const bTotal = b.progress.correct + b.progress.incorrect;
+                    return bTotal - aTotal;
+                })
+                .slice(0, 20); // Show top 20
+
+            sortedWords.forEach(word => {
+                const total = word.progress.correct + word.progress.incorrect;
+                const accuracy = Math.round((word.progress.correct / total) * 100);
+
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.innerHTML = `
+                    <div class="word-info">
+                        <strong>${word.spanish}</strong>
+                        <span>${word.english}</span>
+                    </div>
+                    <div class="word-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${accuracy}%"></div>
+                        </div>
+                        <span style="font-size: 14px; color: #6c757d;">${accuracy}%</span>
+                    </div>
+                `;
+                wordList.appendChild(item);
+            });
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all your progress? This cannot be undone.')) {
+                localStorage.removeItem('spanishVocabProgress');
+                userProgress = {};
+                vocabulary.forEach(word => {
+                    userProgress[word.id] = {
+                        correct: 0,
+                        incorrect: 0,
+                        lastReviewed: null,
+                        nextReview: Date.now(),
+                        interval: 0
+                    };
+                });
+                saveProgress();
+                updateProgressView();
+                alert('Progress reset successfully!');
+            }
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
