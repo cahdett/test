@@ -480,6 +480,7 @@
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="switchView('flashcards')">Flashcards</button>
             <button class="nav-tab" onclick="switchView('reading')">Reading</button>
+            <button class="nav-tab" onclick="switchView('vocabulary')">Vocabulary</button>
             <button class="nav-tab" onclick="switchView('progress')">Progress</button>
         </div>
 
@@ -487,20 +488,28 @@
             <!-- Flashcards View -->
             <div id="flashcards-view" class="view active">
                 <div class="settings-banner">
-                    <h3>📚 Study Batch Size</h3>
+                    <h3>📚 Study Category</h3>
                     <div class="batch-selector">
-                        <button class="batch-btn" onclick="setBatchSize(25)">25</button>
-                        <button class="batch-btn active" onclick="setBatchSize(50)">50</button>
-                        <button class="batch-btn" onclick="setBatchSize(100)">100</button>
-                        <button class="batch-btn" onclick="setBatchSize(0)">All</button>
+                        <button class="batch-btn active" onclick="setCategory('all')">All (500)</button>
+                        <button class="batch-btn" onclick="setCategory('verb')">Verbs (60)</button>
+                        <button class="batch-btn" onclick="setCategory('noun')">Nouns (220)</button>
+                        <button class="batch-btn" onclick="setCategory('adjective')">Adjectives (60)</button>
+                    </div>
+                    <div class="batch-selector" style="margin-top: 10px;">
+                        <button class="batch-btn" onclick="setCategory('phrase')">Phrases (20)</button>
+                        <button class="batch-btn" onclick="setCategory('adverb')">Adverbs (110)</button>
+                        <button class="batch-btn" onclick="setCategory('preposition')">Prepositions (20)</button>
+                        <button class="batch-btn" onclick="setCategory('other')">Other (10)</button>
                     </div>
                     <div class="batch-info">
-                        Studying <strong id="current-batch-info">words 1-50</strong> of 1000+
+                        <span id="current-batch-info">Studying all 500 words</span> •
+                        <button class="btn btn-primary" onclick="shuffleBatch()" style="padding: 5px 15px; font-size: 13px; margin-left: 10px;">🔀 Shuffle</button>
                     </div>
                 </div>
 
                 <div id="flashcard" class="flashcard" onclick="flipCard()">
                     <div class="word-spanish" id="card-spanish"></div>
+                    <div class="word-type" id="card-type" style="display: none; font-size: 14px; opacity: 0.7; margin-top: -10px; margin-bottom: 10px;"></div>
                     <div class="word-english" id="card-english" style="display: none;"></div>
                     <div class="word-example" id="card-example" style="display: none;"></div>
                     <div class="word-example" id="card-translation" style="display: none; opacity: 0.85;"></div>
@@ -528,6 +537,28 @@
                     <div class="feedback" id="sentence-translation" style="background: #e0f2fe; color: #075985; margin-top: 15px;"></div>
                 </div>
                 <button class="btn btn-primary" onclick="nextReading()" style="width: 100%;">Next Sentence</button>
+            </div>
+
+            <!-- Vocabulary List View -->
+            <div id="vocabulary-view" class="view">
+                <div class="settings-banner">
+                    <h3>📖 All Vocabulary Words</h3>
+                    <div class="batch-selector">
+                        <button class="batch-btn active" onclick="filterVocabList('all')">All</button>
+                        <button class="batch-btn" onclick="filterVocabList('verb')">Verbs</button>
+                        <button class="batch-btn" onclick="filterVocabList('noun')">Nouns</button>
+                        <button class="batch-btn" onclick="filterVocabList('adjective')">Adjectives</button>
+                    </div>
+                    <div class="batch-selector" style="margin-top: 10px;">
+                        <button class="batch-btn" onclick="filterVocabList('phrase')">Phrases</button>
+                        <button class="batch-btn" onclick="filterVocabList('adverb')">Adverbs</button>
+                        <button class="batch-btn" onclick="filterVocabList('preposition')">Prepositions</button>
+                    </div>
+                    <input type="text" id="vocab-search" placeholder="Search words..."
+                           style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; margin-top: 15px; font-size: 14px;"
+                           oninput="searchVocabList()">
+                </div>
+                <div class="word-list" id="vocab-list" style="max-height: 500px;"></div>
             </div>
 
             <!-- Progress View -->
@@ -569,9 +600,10 @@
         let showTranslation = false;
         let currentReading = null;
         let userProgress = {};
-        let batchSize = 50;
-        let currentBatchStart = 0;
+        let currentCategory = 'all';
         let currentBatchWords = [];
+        let vocabListFilter = 'all';
+        let vocabSearchTerm = '';
 
         // Text-to-Speech
         let speechSynthesis = window.speechSynthesis;
@@ -621,13 +653,13 @@
             speechSynthesis.speak(utterance);
         }
 
-        // Batch Management
-        function setBatchSize(size) {
-            batchSize = size;
-            currentBatchStart = 0;
+        // Category Management
+        function setCategory(category) {
+            currentCategory = category;
 
-            // Update UI
-            document.querySelectorAll('.batch-btn').forEach(btn => {
+            // Update UI - find the button in the flashcards view
+            const flashcardsView = document.getElementById('flashcards-view');
+            flashcardsView.querySelectorAll('.batch-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
@@ -638,43 +670,36 @@
         }
 
         function updateCurrentBatch() {
-            if (batchSize === 0) {
-                // Study all words
+            if (currentCategory === 'all') {
                 currentBatchWords = [...vocabulary];
             } else {
-                // Get current batch
-                currentBatchWords = vocabulary.slice(currentBatchStart, currentBatchStart + batchSize);
+                currentBatchWords = vocabulary.filter(word => word.type === currentCategory);
             }
         }
 
         function updateBatchInfo() {
             const info = document.getElementById('current-batch-info');
-            if (batchSize === 0) {
-                info.innerHTML = `all <strong>${vocabulary.length}</strong> words`;
-            } else {
-                const end = Math.min(currentBatchStart + batchSize, vocabulary.length);
-                info.innerHTML = `words <strong>${currentBatchStart + 1}-${end}</strong> of ${vocabulary.length}`;
-            }
+            const categoryNames = {
+                'all': 'all 500 words',
+                'verb': `${currentBatchWords.length} verbs`,
+                'noun': `${currentBatchWords.length} nouns`,
+                'adjective': `${currentBatchWords.length} adjectives`,
+                'phrase': `${currentBatchWords.length} phrases`,
+                'adverb': `${currentBatchWords.length} adverbs`,
+                'preposition': `${currentBatchWords.length} prepositions`,
+                'other': `${currentBatchWords.length} other words`
+            };
+            info.textContent = `Studying ${categoryNames[currentCategory]}`;
         }
 
-        function nextBatch() {
-            currentBatchStart += batchSize;
-            if (currentBatchStart >= vocabulary.length) {
-                currentBatchStart = 0; // Loop back to start
+        function shuffleBatch() {
+            // Fisher-Yates shuffle
+            for (let i = currentBatchWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentBatchWords[i], currentBatchWords[j]] = [currentBatchWords[j], currentBatchWords[i]];
             }
-            updateCurrentBatch();
-            updateBatchInfo();
             loadFlashcard();
-        }
-
-        function previousBatch() {
-            currentBatchStart -= batchSize;
-            if (currentBatchStart < 0) {
-                currentBatchStart = Math.floor(vocabulary.length / batchSize) * batchSize;
-            }
-            updateCurrentBatch();
-            updateBatchInfo();
-            loadFlashcard();
+            alert(`Shuffled ${currentBatchWords.length} words!`);
         }
 
         // Local Storage
@@ -714,6 +739,8 @@
 
             if (view === 'progress') {
                 updateProgressView();
+            } else if (view === 'vocabulary') {
+                displayVocabList();
             }
         }
 
@@ -741,6 +768,7 @@
             isFlipped = false;
             showTranslation = false;
             document.getElementById('card-spanish').textContent = currentCard.spanish;
+            document.getElementById('card-type').style.display = 'none';
             document.getElementById('card-english').style.display = 'none';
             document.getElementById('card-example').style.display = 'none';
             document.getElementById('card-translation').style.display = 'none';
@@ -755,6 +783,8 @@
             if (!isFlipped) {
                 isFlipped = true;
                 showTranslation = false;
+                document.getElementById('card-type').textContent = `(${currentCard.type})`;
+                document.getElementById('card-type').style.display = 'block';
                 document.getElementById('card-english').textContent = currentCard.english;
                 document.getElementById('card-example').textContent = currentCard.example;
                 document.getElementById('card-english').style.display = 'block';
@@ -1001,6 +1031,99 @@
                 updateProgressView();
                 alert('Progress reset successfully!');
             }
+        }
+
+        // Vocabulary List Functions
+        function filterVocabList(type) {
+            vocabListFilter = type;
+
+            // Update UI
+            const vocabView = document.getElementById('vocabulary-view');
+            vocabView.querySelectorAll('.batch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            displayVocabList();
+        }
+
+        function searchVocabList() {
+            vocabSearchTerm = document.getElementById('vocab-search').value.toLowerCase();
+            displayVocabList();
+        }
+
+        function displayVocabList() {
+            const wordList = document.getElementById('vocab-list');
+            wordList.innerHTML = '';
+
+            // Filter words by type and search term
+            let filteredWords = vocabulary;
+
+            if (vocabListFilter !== 'all') {
+                filteredWords = filteredWords.filter(word => word.type === vocabListFilter);
+            }
+
+            if (vocabSearchTerm) {
+                filteredWords = filteredWords.filter(word =>
+                    word.spanish.toLowerCase().includes(vocabSearchTerm) ||
+                    word.english.toLowerCase().includes(vocabSearchTerm)
+                );
+            }
+
+            if (filteredWords.length === 0) {
+                wordList.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">No words found.</p>';
+                return;
+            }
+
+            // Display filtered words
+            filteredWords.forEach(word => {
+                const progress = userProgress[word.id];
+                const attempts = progress ? (progress.correct + progress.incorrect) : 0;
+                const accuracy = attempts > 0 ? Math.round((progress.correct / attempts) * 100) : 0;
+
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.innerHTML = `
+                    <div class="word-info">
+                        <strong>${word.spanish}</strong>
+                        <span>${word.english}</span>
+                        <span style="background: #e0f2fe; color: #075985; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">${word.type}</span>
+                    </div>
+                    <div class="word-progress">
+                        ${attempts > 0 ? `
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${accuracy}%"></div>
+                            </div>
+                            <span style="font-size: 14px; color: #6c757d;">${accuracy}%</span>
+                        ` : '<span style="font-size: 12px; color: #9ca3af;">Not studied</span>'}
+                    </div>
+                `;
+
+                // Add click to expand details
+                item.style.cursor = 'pointer';
+                item.onclick = () => toggleWordDetails(item, word);
+
+                wordList.appendChild(item);
+            });
+        }
+
+        function toggleWordDetails(item, word) {
+            const existing = item.querySelector('.word-details');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+
+            const details = document.createElement('div');
+            details.className = 'word-details';
+            details.style.cssText = 'margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;';
+            details.innerHTML = `
+                <div style="color: #6c757d; font-size: 14px; line-height: 1.6;">
+                    <div style="margin-bottom: 8px;"><strong>Example:</strong> ${word.example}</div>
+                    <div style="margin-bottom: 8px;"><em>Translation:</em> ${word.translation}</div>
+                </div>
+            `;
+            item.appendChild(details);
         }
 
         // Initialize app

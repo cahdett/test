@@ -6,12 +6,14 @@ A mobile-friendly web application to help you learn Spanish vocabulary through f
 
 ### 1. Flashcards Mode
 - Learn Spanish words with their English translations
+- **Word type displayed** - See if the word is a verb, noun, adjective, etc.
 - See example sentences in Spanish context
 - **🔊 Audio pronunciation** - Hear the correct Spanish pronunciation
 - **🌐 Translation toggle** - Switch between Spanish example and English translation
 - Interactive card flipping
 - Rate your knowledge (Got It! / Need Practice)
-- **Choose batch size**: Study 25, 50, 100 words at a time, or all words
+- **Study by category**: Filter by verbs, nouns, adjectives, phrases, adverbs, prepositions
+- **🔀 Shuffle** - Randomize word order within your selected category
 
 ### 2. Reading Practice
 - Read Spanish sentences with highlighted vocabulary words
@@ -21,7 +23,15 @@ A mobile-friendly web application to help you learn Spanish vocabulary through f
 - Learn words in context
 - Improved word highlighting (handles different word forms)
 
-### 3. Progress Tracking
+### 3. Vocabulary List
+- **📖 Browse all 500 words** at once in an organized list
+- **Filter by word type** - View only verbs, nouns, adjectives, etc.
+- **Search functionality** - Find specific Spanish or English words
+- **Click to expand** - See example sentences and translations for any word
+- **Progress indicators** - See which words you've studied and your accuracy
+- Perfect for quick reference and reviewing specific categories
+
+### 4. Progress Tracking
 - View your learning statistics:
   - Total words studied
   - Words mastered
@@ -30,7 +40,7 @@ A mobile-friendly web application to help you learn Spanish vocabulary through f
 - See detailed progress for each word (top 50 most practiced)
 - Track which words need more practice
 
-### 4. Spaced Repetition
+### 5. Spaced Repetition
 - Smart review algorithm based on the SM-2 method
 - Words you struggle with appear more frequently
 - Words you know well are reviewed less often
@@ -56,9 +66,19 @@ The app includes **500 essential Spanish words** covering:
 
 **Every word includes:**
 - Spanish word
+- Word type (verb, noun, adjective, phrase, adverb, preposition)
 - English translation
 - Example sentence in Spanish
 - English translation of the example sentence
+
+**Word type breakdown:**
+- Verbs: 60 essential action words
+- Nouns: 220 common objects, people, and places
+- Adjectives: 60 descriptive words
+- Phrases: 20 common expressions
+- Adverbs: 110 modifiers and expressions
+- Prepositions: 20 positional/relational words
+- Other: 10 miscellaneous words
 
 ## How to Use
 
@@ -76,13 +96,17 @@ The app includes **500 essential Spanish words** covering:
 4. Return daily to review words due for spaced repetition
 
 ### Flashcards Mode
-1. **Select your batch size** (25, 50, 100, or All words)
-2. Read the Spanish word
-3. Try to recall the English meaning
-4. Tap the card to reveal the answer and example
-5. **Click 🔊 Pronounce** to hear the Spanish pronunciation
-6. **Click 🌐 Translation** to see the English translation of the example sentence
-7. Rate yourself:
+1. **Select your category** (All, Verbs, Nouns, Adjectives, etc.)
+2. **Optional: Click 🔀 Shuffle** to randomize the order
+3. Read the Spanish word
+4. Try to recall the English meaning
+5. Tap the card to reveal:
+   - The word type (verb, noun, etc.)
+   - English translation
+   - Example sentence in Spanish
+6. **Click 🔊 Pronounce** to hear the Spanish pronunciation
+7. **Click 🌐 Translation** to toggle between Spanish example and English translation
+8. Rate yourself:
    - "Got It!" - You knew the answer (longer review interval)
    - "Need Practice" - You didn't know (review sooner)
 
@@ -93,6 +117,15 @@ The app includes **500 essential Spanish words** covering:
 4. Get immediate feedback
 5. **See the full sentence translation** to understand the complete context
 6. Click "Next Sentence" to continue
+
+### Vocabulary List
+1. Browse all 500 words in a scrollable list
+2. **Filter by type** - Click buttons to show only verbs, nouns, etc.
+3. **Search words** - Type in the search box to find specific words
+4. **Click any word** to expand and see:
+   - Example sentence in Spanish
+   - English translation of the example
+5. View progress indicators showing which words you've studied
 
 ### Progress Tracking
 - View your overall statistics
@@ -159,22 +192,36 @@ To add your own vocabulary words, edit the `vocabulary.js` file. Each word shoul
 
 ## Tips for Success
 
-1. **Start small**: Begin with 25-50 words, then expand as you master them
-2. **Consistency is key**: Study for 10-15 minutes daily
-3. **Use all features**:
+1. **Start with one category**: Begin with verbs or nouns instead of all 500 words
+2. **Use the Vocabulary List**: Browse and familiarize yourself with words before flashcard practice
+3. **Shuffle for variety**: Use the shuffle button to avoid memorizing word order
+4. **Consistency is key**: Study for 10-15 minutes daily
+5. **Use all features**:
    - Listen to pronunciation to improve your accent
    - Read translations to understand sentence context
    - Use reading mode to see words in real sentences
-4. **Focus on context**: Pay attention to example sentences and their translations
-5. **Be honest**: Rate yourself accurately for better spaced repetition
-6. **Review regularly**: Come back to review words when due
-7. **Batch learning**: Master one batch before moving to the next for better retention
+   - Search the vocabulary list for quick reference
+6. **Focus on context**: Pay attention to example sentences and their translations
+7. **Be honest**: Rate yourself accurately for better spaced repetition
+8. **Review regularly**: Come back to review words when due
+9. **Category mastery**: Master one word type (e.g., verbs) before moving to the next
+10. **Use word types**: Notice whether you struggle more with verbs, nouns, etc.
 
 ## License
 
 This project is open source and available for educational purposes.
 
 ## Recent Updates
+
+### Version 3.0
+- ✅ **New Vocabulary List tab** - Browse all 500 words at once
+- ✅ **Word types added** - Every word labeled as verb, noun, adjective, etc.
+- ✅ **Category filtering** - Study by word type instead of random batches
+- ✅ **Shuffle feature** - Randomize words within your selected category
+- ✅ **Search functionality** - Find specific words in the vocabulary list
+- ✅ **Click-to-expand** - View examples and translations in vocabulary list
+- ✅ Word type displayed on flashcards when flipped
+- ✅ Improved navigation with 4 tabs
 
 ### Version 2.0
 - ✅ Expanded to 500 common Spanish words
