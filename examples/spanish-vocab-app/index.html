@@ -83,6 +83,60 @@
             display: block;
         }
 
+        /* Settings Banner */
+        .settings-banner {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .settings-banner h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .batch-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .batch-btn {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .batch-btn:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .batch-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .batch-info {
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .batch-info strong {
+            color: #667eea;
+        }
+
         /* Flashcard Styles */
         .flashcard {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -132,6 +186,31 @@
             font-size: 14px;
             color: rgba(255, 255, 255, 0.8);
             margin-top: 20px;
+        }
+
+        .pronounce-btn {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pronounce-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .pronounce-btn:active {
+            transform: translateY(0);
         }
 
         .card-buttons {
@@ -308,6 +387,8 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .word-item {
@@ -382,6 +463,10 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+
+            .batch-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -389,7 +474,7 @@
     <div class="container">
         <div class="header">
             <h1>🇪🇸 Spanish Vocabulary</h1>
-            <p>Learn Spanish words with flashcards and context</p>
+            <p>Learn 1000+ Spanish words with flashcards and context</p>
         </div>
 
         <div class="nav-tabs">
@@ -401,10 +486,30 @@
         <div class="content">
             <!-- Flashcards View -->
             <div id="flashcards-view" class="view active">
+                <div class="settings-banner">
+                    <h3>📚 Study Batch Size</h3>
+                    <div class="batch-selector">
+                        <button class="batch-btn" onclick="setBatchSize(25)">25</button>
+                        <button class="batch-btn active" onclick="setBatchSize(50)">50</button>
+                        <button class="batch-btn" onclick="setBatchSize(100)">100</button>
+                        <button class="batch-btn" onclick="setBatchSize(0)">All</button>
+                    </div>
+                    <div class="batch-info">
+                        Studying <strong id="current-batch-info">words 1-50</strong> of 1000+
+                    </div>
+                </div>
+
                 <div id="flashcard" class="flashcard" onclick="flipCard()">
                     <div class="word-spanish" id="card-spanish"></div>
                     <div class="word-english" id="card-english" style="display: none;"></div>
                     <div class="word-example" id="card-example" style="display: none;"></div>
+                    <div class="word-example" id="card-translation" style="display: none; opacity: 0.85;"></div>
+                    <button class="pronounce-btn" id="pronounce-btn" style="display: none;" onclick="pronounceWord(event)">
+                        🔊 Pronounce
+                    </button>
+                    <button class="pronounce-btn" id="translate-btn" style="display: none;" onclick="toggleTranslation(event)">
+                        🌐 Translation
+                    </button>
                     <div class="tap-hint">Tap to reveal</div>
                 </div>
                 <div class="card-buttons" id="card-buttons" style="display: none;">
@@ -420,6 +525,7 @@
                     <div class="question">What does the highlighted word mean?</div>
                     <div class="options" id="reading-options"></div>
                     <div class="feedback" id="reading-feedback"></div>
+                    <div class="feedback" id="sentence-translation" style="background: #e0f2fe; color: #075985; margin-top: 15px;"></div>
                 </div>
                 <button class="btn btn-primary" onclick="nextReading()" style="width: 100%;">Next Sentence</button>
             </div>
@@ -455,103 +561,120 @@
         </div>
     </div>
 
+    <script src="vocabulary.js"></script>
     <script>
-        // Vocabulary Database
-        const vocabulary = [
-            { id: 1, spanish: "hola", english: "hello", example: "Hola, ¿cómo estás?" },
-            { id: 2, spanish: "adiós", english: "goodbye", example: "Adiós, hasta luego." },
-            { id: 3, spanish: "gracias", english: "thank you", example: "Gracias por tu ayuda." },
-            { id: 4, spanish: "por favor", english: "please", example: "Por favor, ayúdame." },
-            { id: 5, spanish: "sí", english: "yes", example: "Sí, estoy de acuerdo." },
-            { id: 6, spanish: "no", english: "no", example: "No, no quiero ir." },
-            { id: 7, spanish: "agua", english: "water", example: "Necesito un vaso de agua." },
-            { id: 8, spanish: "comida", english: "food", example: "La comida está deliciosa." },
-            { id: 9, spanish: "casa", english: "house", example: "Mi casa es grande." },
-            { id: 10, spanish: "libro", english: "book", example: "Estoy leyendo un libro interesante." },
-            { id: 11, spanish: "tiempo", english: "time / weather", example: "No tengo tiempo ahora." },
-            { id: 12, spanish: "día", english: "day", example: "Hoy es un buen día." },
-            { id: 13, spanish: "noche", english: "night", example: "Buenas noches, hasta mañana." },
-            { id: 14, spanish: "amigo", english: "friend", example: "Él es mi mejor amigo." },
-            { id: 15, spanish: "familia", english: "family", example: "Mi familia es muy importante." },
-            { id: 16, spanish: "trabajo", english: "work / job", example: "Voy al trabajo cada día." },
-            { id: 17, spanish: "escuela", english: "school", example: "Los niños van a la escuela." },
-            { id: 18, spanish: "coche", english: "car", example: "Mi coche es rojo." },
-            { id: 19, spanish: "ciudad", english: "city", example: "Vivo en una ciudad grande." },
-            { id: 20, spanish: "país", english: "country", example: "España es un país hermoso." },
-            { id: 21, spanish: "persona", english: "person", example: "Ella es una persona amable." },
-            { id: 22, spanish: "hombre", english: "man", example: "El hombre camina por la calle." },
-            { id: 23, spanish: "mujer", english: "woman", example: "La mujer trabaja en una oficina." },
-            { id: 24, spanish: "niño", english: "child / boy", example: "El niño juega en el parque." },
-            { id: 25, spanish: "grande", english: "big / large", example: "Tengo un problema grande." },
-            { id: 26, spanish: "pequeño", english: "small", example: "Mi perro es pequeño." },
-            { id: 27, spanish: "bueno", english: "good", example: "Es un buen restaurante." },
-            { id: 28, spanish: "malo", english: "bad", example: "Hace mal tiempo hoy." },
-            { id: 29, spanish: "nuevo", english: "new", example: "Tengo un teléfono nuevo." },
-            { id: 30, spanish: "viejo", english: "old", example: "Este edificio es muy viejo." },
-            { id: 31, spanish: "hacer", english: "to do / make", example: "¿Qué vas a hacer hoy?" },
-            { id: 32, spanish: "ir", english: "to go", example: "Voy a ir al mercado." },
-            { id: 33, spanish: "venir", english: "to come", example: "¿Puedes venir a mi casa?" },
-            { id: 34, spanish: "ver", english: "to see / watch", example: "Veo una película esta noche." },
-            { id: 35, spanish: "decir", english: "to say / tell", example: "¿Qué quieres decir?" },
-            { id: 36, spanish: "saber", english: "to know (facts)", example: "Yo sé hablar español." },
-            { id: 37, spanish: "querer", english: "to want", example: "Quiero aprender más español." },
-            { id: 38, spanish: "poder", english: "to be able / can", example: "No puedo hacerlo solo." },
-            { id: 39, spanish: "dar", english: "to give", example: "Dame el libro, por favor." },
-            { id: 40, spanish: "tener", english: "to have", example: "Tengo dos hermanos." },
-            { id: 41, spanish: "ser", english: "to be (permanent)", example: "Soy de México." },
-            { id: 42, spanish: "estar", english: "to be (temporary)", example: "Estoy cansado hoy." },
-            { id: 43, spanish: "comer", english: "to eat", example: "Vamos a comer juntos." },
-            { id: 44, spanish: "beber", english: "to drink", example: "¿Quieres beber algo?" },
-            { id: 45, spanish: "hablar", english: "to speak / talk", example: "Hablo español e inglés." },
-            { id: 46, spanish: "vivir", english: "to live", example: "Vivo en Barcelona." },
-            { id: 47, spanish: "dormir", english: "to sleep", example: "Necesito dormir más." },
-            { id: 48, spanish: "trabajar", english: "to work", example: "Trabajo en una empresa." },
-            { id: 49, spanish: "estudiar", english: "to study", example: "Estudio español cada día." },
-            { id: 50, spanish: "llamar", english: "to call", example: "Voy a llamar a mi madre." },
-            { id: 51, spanish: "conocer", english: "to know (people/places)", example: "Conozco un buen restaurante." },
-            { id: 52, spanish: "encontrar", english: "to find", example: "No puedo encontrar mis llaves." },
-            { id: 53, spanish: "pensar", english: "to think", example: "¿Qué piensas de esta idea?" },
-            { id: 54, spanish: "creer", english: "to believe", example: "Creo que tienes razón." },
-            { id: 55, spanish: "sentir", english: "to feel", example: "Me siento muy feliz hoy." },
-            { id: 56, spanish: "amor", english: "love", example: "El amor es importante." },
-            { id: 57, spanish: "vida", english: "life", example: "La vida es bella." },
-            { id: 58, spanish: "mundo", english: "world", example: "Quiero viajar por el mundo." },
-            { id: 59, spanish: "año", english: "year", example: "Este año voy a España." },
-            { id: 60, spanish: "mes", english: "month", example: "El próximo mes es enero." },
-            { id: 61, spanish: "semana", english: "week", example: "Esta semana estoy ocupado." },
-            { id: 62, spanish: "hora", english: "hour / time", example: "¿Qué hora es?" },
-            { id: 63, spanish: "mañana", english: "tomorrow / morning", example: "Nos vemos mañana." },
-            { id: 64, spanish: "tarde", english: "afternoon / late", example: "Buenas tardes." },
-            { id: 65, spanish: "ahora", english: "now", example: "Tengo que irme ahora." },
-            { id: 66, spanish: "siempre", english: "always", example: "Siempre llego tarde." },
-            { id: 67, spanish: "nunca", english: "never", example: "Nunca he estado en París." },
-            { id: 68, spanish: "mucho", english: "much / a lot", example: "Me gusta mucho el chocolate." },
-            { id: 69, spanish: "poco", english: "little / few", example: "Tengo poco dinero." },
-            { id: 70, spanish: "más", english: "more", example: "Quiero más café." },
-            { id: 71, spanish: "menos", english: "less", example: "Trabajo menos que antes." },
-            { id: 72, spanish: "muy", english: "very", example: "Estoy muy cansado." },
-            { id: 73, spanish: "bien", english: "well / good", example: "Todo está bien." },
-            { id: 74, spanish: "mal", english: "badly / bad", example: "Me siento mal." },
-            { id: 75, spanish: "aquí", english: "here", example: "Ven aquí, por favor." },
-            { id: 76, spanish: "allí", english: "there", example: "El banco está allí." },
-            { id: 77, spanish: "donde", english: "where", example: "¿Dónde vives?" },
-            { id: 78, spanish: "cuando", english: "when", example: "¿Cuándo vienes?" },
-            { id: 79, spanish: "cómo", english: "how", example: "¿Cómo estás?" },
-            { id: 80, spanish: "por qué", english: "why", example: "¿Por qué estudias español?" }
-        ];
-
         // State
         let currentCard = null;
         let isFlipped = false;
+        let showTranslation = false;
         let currentReading = null;
         let userProgress = {};
+        let batchSize = 50;
+        let currentBatchStart = 0;
+        let currentBatchWords = [];
+
+        // Text-to-Speech
+        let speechSynthesis = window.speechSynthesis;
+        let spanishVoice = null;
 
         // Initialize
         function init() {
+            loadVoices();
             loadProgress();
+            updateCurrentBatch();
             loadFlashcard();
             loadReading();
             updateProgressView();
+        }
+
+        // Load Spanish voice for pronunciation
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            // Try to find a Spanish voice
+            spanishVoice = voices.find(voice =>
+                voice.lang.startsWith('es')
+            ) || voices[0]; // Fallback to first voice if no Spanish found
+
+            // Some browsers load voices asynchronously
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        }
+
+        // Pronounce word
+        function pronounceWord(event) {
+            event.stopPropagation(); // Prevent card flip
+
+            if (!currentCard) return;
+
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(currentCard.spanish);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.8; // Slightly slower for learning
+
+            if (spanishVoice) {
+                utterance.voice = spanishVoice;
+            }
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // Batch Management
+        function setBatchSize(size) {
+            batchSize = size;
+            currentBatchStart = 0;
+
+            // Update UI
+            document.querySelectorAll('.batch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            updateCurrentBatch();
+            loadFlashcard();
+            updateBatchInfo();
+        }
+
+        function updateCurrentBatch() {
+            if (batchSize === 0) {
+                // Study all words
+                currentBatchWords = [...vocabulary];
+            } else {
+                // Get current batch
+                currentBatchWords = vocabulary.slice(currentBatchStart, currentBatchStart + batchSize);
+            }
+        }
+
+        function updateBatchInfo() {
+            const info = document.getElementById('current-batch-info');
+            if (batchSize === 0) {
+                info.innerHTML = `all <strong>${vocabulary.length}</strong> words`;
+            } else {
+                const end = Math.min(currentBatchStart + batchSize, vocabulary.length);
+                info.innerHTML = `words <strong>${currentBatchStart + 1}-${end}</strong> of ${vocabulary.length}`;
+            }
+        }
+
+        function nextBatch() {
+            currentBatchStart += batchSize;
+            if (currentBatchStart >= vocabulary.length) {
+                currentBatchStart = 0; // Loop back to start
+            }
+            updateCurrentBatch();
+            updateBatchInfo();
+            loadFlashcard();
+        }
+
+        function previousBatch() {
+            currentBatchStart -= batchSize;
+            if (currentBatchStart < 0) {
+                currentBatchStart = Math.floor(vocabulary.length / batchSize) * batchSize;
+            }
+            updateCurrentBatch();
+            updateBatchInfo();
+            loadFlashcard();
         }
 
         // Local Storage
@@ -559,9 +682,11 @@
             const saved = localStorage.getItem('spanishVocabProgress');
             if (saved) {
                 userProgress = JSON.parse(saved);
-            } else {
-                userProgress = {};
-                vocabulary.forEach(word => {
+            }
+
+            // Initialize progress for any new words
+            vocabulary.forEach(word => {
+                if (!userProgress[word.id]) {
                     userProgress[word.id] = {
                         correct: 0,
                         incorrect: 0,
@@ -569,9 +694,10 @@
                         nextReview: Date.now(),
                         interval: 0
                     };
-                });
-                saveProgress();
-            }
+                }
+            });
+
+            saveProgress();
         }
 
         function saveProgress() {
@@ -593,25 +719,34 @@
 
         // Flashcard Functions
         function loadFlashcard() {
-            // Get words due for review using spaced repetition
-            const dueWords = vocabulary.filter(word => {
+            // Get words due for review using spaced repetition from current batch
+            const dueWords = currentBatchWords.filter(word => {
                 const progress = userProgress[word.id];
                 return progress.nextReview <= Date.now();
             });
 
             if (dueWords.length === 0) {
-                // If no words due, pick a random word
-                currentCard = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                // If no words due in batch, pick a random word from batch
+                if (currentBatchWords.length > 0) {
+                    currentCard = currentBatchWords[Math.floor(Math.random() * currentBatchWords.length)];
+                } else {
+                    // No words in batch, use all vocabulary
+                    currentCard = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                }
             } else {
                 // Pick from due words
                 currentCard = dueWords[Math.floor(Math.random() * dueWords.length)];
             }
 
             isFlipped = false;
+            showTranslation = false;
             document.getElementById('card-spanish').textContent = currentCard.spanish;
             document.getElementById('card-english').style.display = 'none';
             document.getElementById('card-example').style.display = 'none';
+            document.getElementById('card-translation').style.display = 'none';
             document.getElementById('card-buttons').style.display = 'none';
+            document.getElementById('pronounce-btn').style.display = 'none';
+            document.getElementById('translate-btn').style.display = 'none';
             document.querySelector('.tap-hint').style.display = 'block';
             document.getElementById('flashcard').classList.remove('flipped');
         }
@@ -619,13 +754,34 @@
         function flipCard() {
             if (!isFlipped) {
                 isFlipped = true;
+                showTranslation = false;
                 document.getElementById('card-english').textContent = currentCard.english;
                 document.getElementById('card-example').textContent = currentCard.example;
                 document.getElementById('card-english').style.display = 'block';
                 document.getElementById('card-example').style.display = 'block';
+                document.getElementById('card-translation').style.display = 'none';
                 document.getElementById('card-buttons').style.display = 'flex';
+                document.getElementById('pronounce-btn').style.display = 'inline-flex';
+                document.getElementById('translate-btn').style.display = 'inline-flex';
                 document.querySelector('.tap-hint').style.display = 'none';
                 document.getElementById('flashcard').classList.add('flipped');
+            }
+        }
+
+        function toggleTranslation(event) {
+            event.stopPropagation(); // Prevent card flip
+
+            showTranslation = !showTranslation;
+            const exampleEl = document.getElementById('card-example');
+            const translationEl = document.getElementById('card-translation');
+
+            if (showTranslation) {
+                exampleEl.style.display = 'none';
+                translationEl.textContent = currentCard.translation;
+                translationEl.style.display = 'block';
+            } else {
+                exampleEl.style.display = 'block';
+                translationEl.style.display = 'none';
             }
         }
 
@@ -658,15 +814,28 @@
 
         // Reading Practice Functions
         function loadReading() {
-            // Pick a random word with an example sentence
-            const wordsWithExamples = vocabulary.filter(w => w.example);
+            // Pick a random word with an example sentence from current batch
+            const wordsWithExamples = (currentBatchWords.length > 0 ? currentBatchWords : vocabulary)
+                .filter(w => w.example);
+
+            if (wordsWithExamples.length === 0) return;
+
             currentReading = wordsWithExamples[Math.floor(Math.random() * wordsWithExamples.length)];
 
-            // Highlight the word in the sentence
-            const sentence = currentReading.example.replace(
-                new RegExp(currentReading.spanish, 'gi'),
-                `<span class="highlight">${currentReading.spanish}</span>`
-            );
+            // Highlight the word in the sentence - escape special regex characters and use word boundaries
+            const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedWord = escapeRegex(currentReading.spanish);
+
+            // Try to find the exact word first, then try without word boundaries if not found
+            let sentence = currentReading.example;
+            const exactMatch = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+            const anyMatch = new RegExp(escapedWord, 'gi');
+
+            if (exactMatch.test(sentence)) {
+                sentence = sentence.replace(exactMatch, match => `<span class="highlight">${match}</span>`);
+            } else {
+                sentence = sentence.replace(anyMatch, match => `<span class="highlight">${match}</span>`);
+            }
 
             document.getElementById('reading-sentence').innerHTML = sentence;
 
@@ -692,13 +861,15 @@
                 optionsContainer.appendChild(btn);
             });
 
-            // Reset feedback
+            // Reset feedback and translation
             document.getElementById('reading-feedback').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('sentence-translation').classList.remove('show');
         }
 
         function checkReading(selected) {
             const correct = selected === currentReading.english;
             const feedback = document.getElementById('reading-feedback');
+            const translation = document.getElementById('sentence-translation');
             const buttons = document.querySelectorAll('.option-btn');
 
             // Disable all buttons
@@ -716,6 +887,10 @@
             feedback.textContent = correct
                 ? `Correct! "${currentReading.spanish}" means "${currentReading.english}".`
                 : `Not quite. "${currentReading.spanish}" means "${currentReading.english}".`;
+
+            // Show full sentence translation
+            translation.classList.add('show');
+            translation.innerHTML = `<strong>Full translation:</strong> "${currentReading.translation}"`;
 
             // Update progress
             const progress = userProgress[currentReading.id];
@@ -781,28 +956,32 @@
                     const bTotal = b.progress.correct + b.progress.incorrect;
                     return bTotal - aTotal;
                 })
-                .slice(0, 20); // Show top 20
+                .slice(0, 50); // Show top 50
 
-            sortedWords.forEach(word => {
-                const total = word.progress.correct + word.progress.incorrect;
-                const accuracy = Math.round((word.progress.correct / total) * 100);
+            if (sortedWords.length === 0) {
+                wordList.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">Start studying to see your progress here!</p>';
+            } else {
+                sortedWords.forEach(word => {
+                    const total = word.progress.correct + word.progress.incorrect;
+                    const accuracy = Math.round((word.progress.correct / total) * 100);
 
-                const item = document.createElement('div');
-                item.className = 'word-item';
-                item.innerHTML = `
-                    <div class="word-info">
-                        <strong>${word.spanish}</strong>
-                        <span>${word.english}</span>
-                    </div>
-                    <div class="word-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${accuracy}%"></div>
+                    const item = document.createElement('div');
+                    item.className = 'word-item';
+                    item.innerHTML = `
+                        <div class="word-info">
+                            <strong>${word.spanish}</strong>
+                            <span>${word.english}</span>
                         </div>
-                        <span style="font-size: 14px; color: #6c757d;">${accuracy}%</span>
-                    </div>
-                `;
-                wordList.appendChild(item);
-            });
+                        <div class="word-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${accuracy}%"></div>
+                            </div>
+                            <span style="font-size: 14px; color: #6c757d;">${accuracy}%</span>
+                        </div>
+                    `;
+                    wordList.appendChild(item);
+                });
+            }
         }
 
         function resetProgress() {
@@ -825,7 +1004,8 @@
         }
 
         // Initialize app
-        init();
+        window.addEventListener('DOMContentLoaded', init);
+        updateBatchInfo();
     </script>
 </body>
 </html>
